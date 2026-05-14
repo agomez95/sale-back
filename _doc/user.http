@@ -1,0 +1,111 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc3OTUwMzQ0LCJleHAiOjE3Nzc5NTEyNDQsImlzcyI6InNhbGUtYmFjayJ9.LrZ3cLgdt0BeIvcWoagQuit6ErL0q_-zumJ381Jl__8
+
+### ==========================================
+### USER
+### ==========================================
+
+### Signup customer (válido)
+POST {{baseUrl}}/user/signup HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstname": "Adrian",
+    "lastname": "Gomez",
+    "email": "adrian@test.com",
+    "password": "Test1234!"
+}
+
+### ==========================================
+
+### Signup customer (email duplicado)
+POST {{baseUrl}}/user/signup HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstname": "Adrian",
+    "lastname": "Gomez",
+    "email": "adrian@test.com",
+    "password": "Test1234!"
+}
+
+### ==========================================
+
+### Signup customer (password débil)
+POST {{baseUrl}}/user/signup HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstname": "Adrian",
+    "lastname": "Gomez",
+    "email": "adrian2@test.com",
+    "password": "12345678"
+}
+
+### ==========================================
+
+### Signin customer (válido)
+POST {{baseUrl}}/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "adrian@test.com",
+    "password": "Test1234!",
+    "type": "customer"
+}
+
+### ==========================================
+
+### Signin admin (válido)
+POST {{baseUrl}}/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "admin@test.com",
+    "password": "Admin1234!",
+    "type": "admin"
+}
+
+### ==========================================
+
+### Signin editor (válido)
+POST {{baseUrl}}/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "editor@test.com",
+    "password": "Editor1234!",
+    "type": "admin"
+}
+
+### ==========================================
+
+### Signin (credenciales incorrectas)
+POST {{baseUrl}}/user/signin HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "adrian@test.com",
+    "password": "WrongPassword1!",
+    "type": "customer"
+}
+
+### ==========================================
+
+### Refresh token
+POST {{baseUrl}}/user/refresh HTTP/1.1
+
+### ==========================================
+
+### Me (perfil)
+GET {{baseUrl}}/user/me HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### ==========================================
+
+### Logout
+POST {{baseUrl}}/user/logout HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### ==========================================

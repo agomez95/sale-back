@@ -1,0 +1,57 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@brandId = 1
+@subcategoryId = 1
+@productId = 1
+
+### ==========================================
+### SEARCH — RUTAS PÚBLICAS (sin token)
+### ==========================================
+
+### Search by brand (válido ✅)
+GET {{baseUrl}}/search/brand/{{brandId}} HTTP/1.1
+
+### ==========================================
+
+### Search by subcategory (válido ✅)
+GET {{baseUrl}}/search/subcategory/{{subcategoryId}} HTTP/1.1
+
+### ==========================================
+
+### Search by product (válido ✅)
+GET {{baseUrl}}/search/product/{{productId}} HTTP/1.1
+
+### ==========================================
+
+### Get subcategories with specs (válido ✅)
+GET {{baseUrl}}/search/subcategories HTTP/1.1
+
+### ==========================================
+
+### Search brand (no existe — 204 sin contenido)
+GET {{baseUrl}}/search/brand/999 HTTP/1.1
+
+### ==========================================
+
+### Search subcategory (no existe — 204 sin contenido)
+GET {{baseUrl}}/search/subcategory/999 HTTP/1.1
+
+### ==========================================
+
+### Search product (no existe — 204 sin contenido)
+GET {{baseUrl}}/search/product/999 HTTP/1.1
+
+### ==========================================
+
+### Search brand (id inválido — 422 ❌)
+GET {{baseUrl}}/search/brand/abc HTTP/1.1
+
+### ==========================================
+
+### Search subcategory (id inválido — 422 ❌)
+GET {{baseUrl}}/search/subcategory/abc HTTP/1.1
+
+### ==========================================
+
+### Search product (id inválido — 422 ❌)
+GET {{baseUrl}}/search/product/abc HTTP/1.1

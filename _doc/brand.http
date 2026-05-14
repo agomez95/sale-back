@@ -1,0 +1,241 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@brandId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc4NzI3OTExLCJleHAiOjE3Nzg3Mjg4MTEsImlzcyI6InNhbGUtYmFjayJ9.f62oBnSiunhzIPb8nXHCX4aFcEymkPQ6fI3DL-U7bn0
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### BRAND — RUTAS PÚBLICAS
+### ==========================================
+
+### Get all brands SIN parámetros (sin token — público ✅)
+GET {{baseUrl}}/brand/ HTTP/1.1
+
+### ==========================================
+
+### Get brand by ID (válido — público ✅)
+GET {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+
+### ==========================================
+
+### Get brand by ID (no existe — 404)
+GET {{baseUrl}}/brand/999 HTTP/1.1
+
+### ==========================================
+
+### Get brand by ID (id inválido — 422)
+GET {{baseUrl}}/brand/abc HTTP/1.1
+
+
+### ==========================================
+### BRAND — CREATE (admin + editor)
+### ==========================================
+
+### Create brand (admin — válido ✅ 201)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Basement"
+}
+
+### ==========================================
+
+### Create brand (editor — válido ✅ 201)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Adidas"
+}
+
+### ==========================================
+
+### Create brand (customer — 403 Forbidden ❌)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Puma"
+}
+
+### ==========================================
+
+### Create brand (sin token — 401 Unauthorized ❌)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Puma"
+}
+
+### ==========================================
+
+### Create brand (name vacío — 422 ❌)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": ""
+}
+
+### ==========================================
+
+### Create brand (name muy corto — 422 ❌)
+POST {{baseUrl}}/brand/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "A"
+}
+
+
+### ==========================================
+### BRAND — UPDATE (admin + editor)
+### ==========================================
+
+### Update brand (admin — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Basement Updated"
+}
+
+### ==========================================
+
+### Update brand (editor — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Basement Updated By Editor"
+}
+
+### ==========================================
+
+### Update brand (customer — 403 ❌)
+PATCH {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Basement Updated"
+}
+
+### ==========================================
+
+### Update brand (sin token — 401 ❌)
+PATCH {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Basement Updated"
+}
+
+### ==========================================
+
+### Update brand (no existe — 404 ❌)
+PATCH {{baseUrl}}/brand/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Basement Updated"
+}
+
+
+### ==========================================
+### BRAND — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate brand (admin — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate brand (editor — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate brand (customer — 403 ❌)
+PATCH {{baseUrl}}/brand/{{brandId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate brand (sin token — 401 ❌)
+PATCH {{baseUrl}}/brand/{{brandId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Activate brand (no existe — 404 ❌)
+PATCH {{baseUrl}}/brand/999/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate brand (admin — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate brand (editor — válido ✅)
+PATCH {{baseUrl}}/brand/{{brandId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate brand (customer — 403 ❌)
+PATCH {{baseUrl}}/brand/{{brandId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate brand (no existe — 404 ❌)
+PATCH {{baseUrl}}/brand/999/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+
+### ==========================================
+### BRAND — DELETE (solo admin)
+### ==========================================
+
+### Delete brand (admin — válido ✅)
+DELETE {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Delete brand (editor — 403 ❌ solo admin puede eliminar)
+DELETE {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Delete brand (customer — 403 ❌)
+DELETE {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Delete brand (sin token — 401 ❌)
+DELETE {{baseUrl}}/brand/{{brandId}} HTTP/1.1
+
+### ==========================================
+
+### Delete brand (no existe — 404 ❌)
+DELETE {{baseUrl}}/brand/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}

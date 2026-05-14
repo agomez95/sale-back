@@ -1,0 +1,125 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@adminToken = TU_TOKEN_ADMIN
+@editorToken = TU_TOKEN_EDITOR
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### PHOTO — UPLOAD (admin + editor)
+### ==========================================
+
+### Upload photo (admin — válido ✅ 201)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+1
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+------FormBoundary--
+
+### ==========================================
+
+### Upload photo (editor — válido ✅ 201)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+1
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+------FormBoundary--
+
+### ==========================================
+
+### Upload photo (customer — 403 ❌)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+1
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+------FormBoundary--
+
+### ==========================================
+
+### Upload photo (sin token — 401 ❌)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+1
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+------FormBoundary--
+
+### ==========================================
+
+### Upload photo (variant no existe — 400 ❌)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+999
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+------FormBoundary--
+
+### ==========================================
+
+### Upload photo (sin archivo — 400 ❌)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "pro_variant_id": "1"
+}
+
+### ==========================================
+
+### Upload photo (tipo inválido — 400 ❌)
+POST {{baseUrl}}/photo/upload HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="pro_variant_id"
+
+1
+------FormBoundary
+Content-Disposition: form-data; name="photo"; filename="test.pdf"
+Content-Type: application/pdf
+
+< ./test.pdf
+------FormBoundary--

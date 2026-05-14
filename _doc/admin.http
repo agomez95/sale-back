@@ -1,0 +1,96 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc4NzI3OTExLCJleHAiOjE3Nzg3Mjg4MTEsImlzcyI6InNhbGUtYmFjayJ9.f62oBnSiunhzIPb8nXHCX4aFcEymkPQ6fI3DL-U7bn0
+@userId = UUID_DEL_USUARIO
+
+### ── Cache ───────────────────────────────────────────
+
+### GET cache stats
+GET {{baseUrl}}/admin/cache/stats HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### DELETE cache
+DELETE {{baseUrl}}/admin/cache HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ── Admin users ─────────────────────────────────────
+
+## POST Crear admin (solo admins)
+POST {{baseUrl}}/admin/users/admins HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "firstname": "Editor",
+    "lastname": "User",
+    "email": "editor@test.com",
+    "password": "Editor1234!",
+    "role": "editor"
+}
+
+### GET all admins (paginado)
+GET {{baseUrl}}/admin/users/admins HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+###
+GET {{baseUrl}}/admin/users/admins?page=1&limit=5 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Activate admin
+PATCH {{baseUrl}}/admin/users/admins/{{userId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Deactivate admin
+PATCH {{baseUrl}}/admin/users/admins/{{userId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ── Customers ───────────────────────────────────────
+
+### GET all customers (paginado)
+GET {{baseUrl}}/admin/users/customers HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+###
+GET {{baseUrl}}/admin/users/customers?page=1&limit=5 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Activate customer
+PATCH {{baseUrl}}/admin/users/customers/{{userId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Deactivate customer
+PATCH {{baseUrl}}/admin/users/customers/{{userId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ── Login attempts ──────────────────────────────────
+
+### GET login attempts (paginado)
+GET {{baseUrl}}/admin/login-attempts HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+###
+GET {{baseUrl}}/admin/login-attempts?page=1&limit=20 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ── Active tokens ───────────────────────────────────
+
+### GET active tokens (paginado)
+GET {{baseUrl}}/admin/tokens/active HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Revocar tokens de un admin
+DELETE {{baseUrl}}/admin/tokens/{{userId}}/admin HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### Revocar tokens de un customer
+DELETE {{baseUrl}}/admin/tokens/{{userId}}/customer HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ── Seguridad ───────────────────────────────────────
+
+### Sin token → 401
+GET {{baseUrl}}/admin/users/admins HTTP/1.1
+
+### Con token customer → 403
+GET {{baseUrl}}/admin/users/admins HTTP/1.1
+Authorization: Bearer TU_TOKEN_CUSTOMER

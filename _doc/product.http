@@ -1,0 +1,190 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@productId = 1
+@subcategoryId = 1
+@brandId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc3OTUwMzQ0LCJleHAiOjE3Nzc5NTEyNDQsImlzcyI6InNhbGUtYmFjayJ9.LrZ3cLgdt0BeIvcWoagQuit6ErL0q_-zumJ381Jl__8
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### PRODUCT — RUTAS PÚBLICAS
+### ==========================================
+
+### Get all products SIN parámetros (sin token — público ✅)
+GET {{baseUrl}}/product/ HTTP/1.1
+
+### ==========================================
+
+### Página 1 con limit 1
+GET {{baseUrl}}/product/?page=1&limit=1 HTTP/1.1
+
+### ==========================================
+
+### GET product by ID (válido ✅)
+GET {{baseUrl}}/product/{{productId}} HTTP/1.1
+
+### ==========================================
+
+### ==========================================
+### PRODUCT — CREATE (admin + editor)
+### ==========================================
+
+### Create product (admin — válido ✅ 201)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement",
+    "description": "Pantalon de hombre",
+    "long_description": "Pantalon de hombre de la marca Basement, tela drill",
+    "subcategory_id": {{subcategoryId}},
+    "brand_id": {{brandId}}
+}
+
+### ==========================================
+
+### Create product (editor — válido ✅ 201)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Polo Hombre Basement",
+    "description": "Polo de hombre",
+    "long_description": "Polo de hombre de la marca Basement, tela algodón",
+    "subcategory_id": {{subcategoryId}},
+    "brand_id": {{brandId}}
+}
+
+### ==========================================
+
+### Create product (customer — 403 ❌)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement",
+    "description": "Pantalon de hombre",
+    "long_description": "Pantalon de hombre de la marca Basement",
+    "subcategory_id": {{subcategoryId}},
+    "brand_id": {{brandId}}
+}
+
+### ==========================================
+
+### Create product (sin token — 401 ❌)
+POST {{baseUrl}}/product/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement",
+    "description": "Pantalon de hombre",
+    "long_description": "Pantalon de hombre de la marca Basement",
+    "subcategory_id": {{subcategoryId}},
+    "brand_id": {{brandId}}
+}
+
+### ==========================================
+
+### Create product (subcategory_id no existe — 404 ❌)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement",
+    "description": "Pantalon de hombre",
+    "long_description": "Pantalon de hombre de la marca Basement",
+    "subcategory_id": 999,
+    "brand_id": {{brandId}}
+}
+
+### ==========================================
+
+### Create product (brand_id no existe — 404 ❌)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement",
+    "description": "Pantalon de hombre",
+    "long_description": "Pantalon de hombre de la marca Basement",
+    "subcategory_id": {{subcategoryId}},
+    "brand_id": 999
+}
+
+### ==========================================
+
+### Create product (sin campos requeridos — 422 ❌)
+POST {{baseUrl}}/product/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalon Hombre Basement"
+}
+
+
+### ==========================================
+### PRODUCT — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate product (admin — válido ✅)
+PATCH {{baseUrl}}/product/{{productId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate product (editor — válido ✅)
+PATCH {{baseUrl}}/product/{{productId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate product (customer — 403 ❌)
+PATCH {{baseUrl}}/product/{{productId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate product (sin token — 401 ❌)
+PATCH {{baseUrl}}/product/{{productId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Activate product (no existe — 404 ❌)
+PATCH {{baseUrl}}/product/999/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate product (admin — válido ✅)
+PATCH {{baseUrl}}/product/{{productId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate product (editor — válido ✅)
+PATCH {{baseUrl}}/product/{{productId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate product (customer — 403 ❌)
+PATCH {{baseUrl}}/product/{{productId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate product (sin token — 401 ❌)
+PATCH {{baseUrl}}/product/{{productId}}/deactivate HTTP/1.1
+
+### ==========================================
+
+### Deactivate product (no existe — 404 ❌)
+PATCH {{baseUrl}}/product/999/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}

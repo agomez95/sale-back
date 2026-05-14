@@ -1,0 +1,235 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@categoryId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc3OTUwMzQ0LCJleHAiOjE3Nzc5NTEyNDQsImlzcyI6InNhbGUtYmFjayJ9.LrZ3cLgdt0BeIvcWoagQuit6ErL0q_-zumJ381Jl__8
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### CATEGORY — RUTAS PÚBLICAS
+### ==========================================
+
+### Get all categories SIN parámetros (sin token — público ✅)
+GET {{baseUrl}}/category/ HTTP/1.1
+
+### ==========================================
+
+### Get category by ID (válido — público ✅)
+GET {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+
+### ==========================================
+
+### Get category by ID (no existe — 404)
+GET {{baseUrl}}/category/999 HTTP/1.1
+
+### ==========================================
+
+### Get category by ID (id inválido — 422)
+GET {{baseUrl}}/category/abc HTTP/1.1
+
+
+### ==========================================
+### CATEGORY — CREATE (admin + editor)
+### ==========================================
+
+### Create category (admin — válido ✅ 201)
+POST {{baseUrl}}/category/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Ropa"
+}
+
+### ==========================================
+
+### Create category (editor — válido ✅ 201)
+POST {{baseUrl}}/category/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Calzado"
+}
+
+### ==========================================
+
+### Create category (customer — 403 ❌)
+POST {{baseUrl}}/category/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Accesorios"
+}
+
+### ==========================================
+
+### Create category (sin token — 401 ❌)
+POST {{baseUrl}}/category/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Accesorios"
+}
+
+### ==========================================
+
+### Create category (name vacío — 422 ❌)
+POST {{baseUrl}}/category/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": ""
+}
+
+
+### ==========================================
+### CATEGORY — UPDATE (admin + editor)
+### ==========================================
+
+### Update category (admin — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Ropa Updated"
+}
+
+### ==========================================
+
+### Update category (editor — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Ropa Updated By Editor"
+}
+
+### ==========================================
+
+### Update category (customer — 403 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Ropa Updated"
+}
+
+### ==========================================
+
+### Update category (sin token — 401 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Ropa Updated"
+}
+
+### ==========================================
+
+### Update category (no existe — 404 ❌)
+PATCH {{baseUrl}}/category/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Ropa Updated"
+}
+
+
+### ==========================================
+### CATEGORY — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate category (admin — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate category (editor — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate category (customer — 403 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate category (sin token — 401 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Activate category (no existe — 404 ❌)
+PATCH {{baseUrl}}/category/999/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate category (admin — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate category (editor — válido ✅)
+PATCH {{baseUrl}}/category/{{categoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate category (customer — 403 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate category (sin token — 401 ❌)
+PATCH {{baseUrl}}/category/{{categoryId}}/deactivate HTTP/1.1
+
+### ==========================================
+
+### Deactivate category (no existe — 404 ❌)
+PATCH {{baseUrl}}/category/999/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+
+### ==========================================
+### CATEGORY — DELETE (solo admin)
+### ==========================================
+
+### Delete category (admin — válido ✅)
+DELETE {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Delete category (editor — 403 ❌ solo admin puede eliminar)
+DELETE {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Delete category (customer — 403 ❌)
+DELETE {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Delete category (sin token — 401 ❌)
+DELETE {{baseUrl}}/category/{{categoryId}} HTTP/1.1
+
+### ==========================================
+
+### Delete category (no existe — 404 ❌)
+DELETE {{baseUrl}}/category/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}

@@ -1,0 +1,434 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@variantId = 1
+@productId = 1
+@specValueId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc4MDM1Njk4LCJleHAiOjE3NzgwMzY1OTgsImlzcyI6InNhbGUtYmFjayJ9.w2skTlWiurzGYmffl7R0RnjpxSnA4ejcBPH4GDvUGvw
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### VARIANT — CREATE (admin + editor)
+### ==========================================
+
+### Create variant (admin — válido ✅ 201)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "PANTALON NEGRO 32",
+    "stock": 10,
+    "cost": 59.90,
+    "product_id": {{productId}}
+}
+
+### ==========================================
+
+### Create variant 2 (editor — válido ✅ 201)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "PANTALON BEIGE 32",
+    "stock": 10,
+    "cost": 59.90,
+    "product_id": {{productId}}
+}
+
+### ==========================================
+
+### Create variant (customer — 403 ❌)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "PANTALON NEGRO 32",
+    "stock": 10,
+    "cost": 59.90,
+    "product_id": {{productId}}
+}
+
+### ==========================================
+
+### Create variant (sin token — 401 ❌)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "PANTALON NEGRO 32",
+    "stock": 10,
+    "cost": 59.90,
+    "product_id": {{productId}}
+}
+
+### ==========================================
+
+### Create variant (product_id no existe — 404 ❌)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "PANTALON NEGRO 32",
+    "stock": 10,
+    "cost": 59.90,
+    "product_id": 999
+}
+
+### ==========================================
+
+### Create variant (stock negativo — 422 ❌)
+POST {{baseUrl}}/variant/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "PANTALON NEGRO 32",
+    "stock": -1,
+    "cost": 59.90,
+    "product_id": {{productId}}
+}
+
+
+### ==========================================
+### VARIANT — SPEC VALUES (admin + editor)
+### ==========================================
+
+### Add specification COLOR value (admin — válido ✅)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": {{specValueId}}
+}
+
+### ==========================================
+
+### Add specification SIZE value (admin — válido ✅)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": 2
+}
+
+### ==========================================
+
+### Add specification TEXT value (admin — válido ✅)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": 3
+}
+
+### ==========================================
+
+### Add spec val (editor — válido ✅)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": {{specValueId}}
+}
+
+### ==========================================
+
+### Add spec val (customer — 403 ❌)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": {{specValueId}}
+}
+
+### ==========================================
+
+### Add spec val (sin token — 401 ❌)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Content-Type: application/json
+
+{
+    "variant_id": {{variantId}},
+    "specification_value_id": {{specValueId}}
+}
+
+### ==========================================
+
+### Add spec val (variant no existe — 404 ❌)
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "variant_id": 999,
+    "specification_value_id": {{specValueId}}
+}
+
+
+### ==========================================
+### VARIANT — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate variant (admin — válido ✅)
+PATCH {{baseUrl}}/variant/{{variantId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate variant (editor — válido ✅)
+PATCH {{baseUrl}}/variant/{{variantId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate variant (customer — 403 ❌)
+PATCH {{baseUrl}}/variant/{{variantId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate variant (sin token — 401 ❌)
+PATCH {{baseUrl}}/variant/{{variantId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Deactivate variant (admin — válido ✅)
+PATCH {{baseUrl}}/variant/{{variantId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate variant (editor — válido ✅)
+PATCH {{baseUrl}}/variant/{{variantId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate variant (customer — 403 ❌)
+PATCH {{baseUrl}}/variant/{{variantId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate variant (sin token — 401 ❌)
+PATCH {{baseUrl}}/variant/{{variantId}}/deactivate HTTP/1.1
+
+
+### ==========================================
+### VARIANT — DELETE (solo admin)
+### ==========================================
+
+### Delete variant (admin — válido ✅)
+### Trigger elimina fotos automáticamente
+DELETE {{baseUrl}}/variant/{{variantId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Delete variant (editor — 403 ❌ solo admin puede eliminar)
+DELETE {{baseUrl}}/variant/{{variantId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Delete variant (customer — 403 ❌)
+DELETE {{baseUrl}}/variant/{{variantId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Delete variant (sin token — 401 ❌)
+DELETE {{baseUrl}}/variant/{{variantId}} HTTP/1.1
+
+### ==========================================
+
+### Delete variant (no existe — 404 ❌)
+DELETE {{baseUrl}}/variant/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+
+### ==========================================
+### VARIANTS OF 'Pantalon Basement' (admin)
+### ==========================================
+
+### ── Variante 2 (AZUL 32) ──────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 2, "specification_value_id": 35 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 2, "specification_value_id": 2 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 2, "specification_value_id": 3 }
+
+### ── Variante 3 (BEIGE 32) ─────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 3, "specification_value_id": 36 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 3, "specification_value_id": 2 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 3, "specification_value_id": 34 }
+
+### ── Variante 4 (NEGRO 30) ─────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 4, "specification_value_id": 1 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 4, "specification_value_id": 37 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 4, "specification_value_id": 34 }
+
+### ── Variante 5 (AZUL 30) ──────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 5, "specification_value_id": 35 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 5, "specification_value_id": 37 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 5, "specification_value_id": 34 }
+
+### ── Variante 6 (BEIGE 30) ─────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 6, "specification_value_id": 36 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 6, "specification_value_id": 37 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 6, "specification_value_id": 34 }
+
+### ── Variante 7 (NEGRO 28) ─────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 7, "specification_value_id": 1 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 7, "specification_value_id": 39 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 7, "specification_value_id": 34 }
+
+### ── Variante 8 (AZUL 28) ──────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 8, "specification_value_id": 35 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 8, "specification_value_id": 39 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 8, "specification_value_id": 34 }
+
+### ── Variante 9 (BEIGE 28) ─────────────────────────
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 9, "specification_value_id": 36 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 9, "specification_value_id": 39 }
+
+###
+POST {{baseUrl}}/variant/spec-val HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "variant_id": 9, "specification_value_id": 34 }

@@ -1,0 +1,253 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@specId = 1
+@specValueId = 1
+@subcategoryId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc4MDM1Njk4LCJleHAiOjE3NzgwMzY1OTgsImlzcyI6InNhbGUtYmFjayJ9.w2skTlWiurzGYmffl7R0RnjpxSnA4ejcBPH4GDvUGvw
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### SPECIFICATION — CREATE (admin + editor)
+### ==========================================
+
+### Create specification COLOR (admin — válido ✅ 201)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "specification_constant_id": 1,
+    "subcategory_id": {{subcategoryId}}
+}
+
+### ==========================================
+
+### Create specification SIZE (editor — válido ✅ 201)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "specification_constant_id": 2,
+    "subcategory_id": {{subcategoryId}}
+}
+
+### ==========================================
+
+### Create specification TEXT (admin — válido ✅ 201)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "specification_constant_id": 3,
+    "subcategory_id": {{subcategoryId}}
+}
+
+### ==========================================
+
+### Create specification (customer — 403 ❌)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "specification_constant_id": 1,
+    "subcategory_id": {{subcategoryId}}
+}
+
+### ==========================================
+
+### Create specification (sin token — 401 ❌)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "specification_constant_id": 1,
+    "subcategory_id": {{subcategoryId}}
+}
+
+### ==========================================
+
+### Create specification (constant_id inválido — 422 ❌)
+POST {{baseUrl}}/specification/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "specification_constant_id": 99,
+    "subcategory_id": {{subcategoryId}}
+}
+
+
+### ==========================================
+### SPECIFICATION VALUE — CREATE (admin + editor)
+### ==========================================
+
+### Create spec value NEGRO (admin — válido ✅ 201)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "value": "NEGRO",
+    "specification_id": {{specId}}
+}
+
+### ==========================================
+
+### Create spec value SIZE 32 (editor — válido ✅ 201)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "value": "32",
+    "specification_id": 2
+}
+
+### ==========================================
+
+### Create spec value TEXT (admin — válido ✅ 201)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "value": "Material: Drill",
+    "specification_id": 3
+}
+
+### ==========================================
+
+### Create spec value (customer — 403 ❌)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "value": "ROJO",
+    "specification_id": {{specId}}
+}
+
+### ==========================================
+
+### Create spec value (sin token — 401 ❌)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Content-Type: application/json
+
+{
+    "value": "ROJO",
+    "specification_id": {{specId}}
+}
+
+### ==========================================
+
+### Create spec value (specification no existe — 404 ❌)
+POST {{baseUrl}}/specification/value HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "value": "ROJO",
+    "specification_id": 999
+}
+
+
+### ==========================================
+### SPECIFICATION — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate specification (admin — válido ✅)
+PATCH {{baseUrl}}/specification/{{specId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate specification (editor — válido ✅)
+PATCH {{baseUrl}}/specification/{{specId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate specification (customer — 403 ❌)
+PATCH {{baseUrl}}/specification/{{specId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate specification (sin token — 401 ❌)
+PATCH {{baseUrl}}/specification/{{specId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Deactivate specification (admin — válido ✅)
+PATCH {{baseUrl}}/specification/{{specId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate specification (editor — válido ✅)
+PATCH {{baseUrl}}/specification/{{specId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate specification (customer — 403 ❌)
+PATCH {{baseUrl}}/specification/{{specId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate specification (sin token — 401 ❌)
+PATCH {{baseUrl}}/specification/{{specId}}/deactivate HTTP/1.1
+
+
+### ==========================================
+### SPECIFICATION VALUE — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate spec value (admin — válido ✅)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate spec value (editor — válido ✅)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate spec value (customer — 403 ❌)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate spec value (sin token — 401 ❌)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Deactivate spec value (admin — válido ✅)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate spec value (editor — válido ✅)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate spec value (customer — 403 ❌)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate spec value (sin token — 401 ❌)
+PATCH {{baseUrl}}/specification/value/{{specValueId}}/deactivate HTTP/1.1

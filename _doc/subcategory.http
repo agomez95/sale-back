@@ -1,0 +1,258 @@
+
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@subcategoryId = 1
+@categoryId = 1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5NWNkNmExZi1hMDc4LTRmY2YtODYxZC1lMWMwMGU0OGNmNjkiLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwicm9sZSI6ImFkbWluIiwidHlwZSI6ImFkbWluIiwiaWF0IjoxNzc3OTUwMzQ0LCJleHAiOjE3Nzc5NTEyNDQsImlzcyI6InNhbGUtYmFjayJ9.LrZ3cLgdt0BeIvcWoagQuit6ErL0q_-zumJ381Jl__8
+@editorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxYzYyZGFiZi01YmRlLTQ1YWYtYTU2NS05ZTg5NmFkZGM5NDMiLCJlbWFpbCI6ImVkaXRvckB0ZXN0LmNvbSIsInJvbGUiOiJlZGl0b3IiLCJ0eXBlIjoiYWRtaW4iLCJpYXQiOjE3Nzc5NTA3MTMsImV4cCI6MTc3Nzk1MTYxMywiaXNzIjoic2FsZS1iYWNrIn0.fVxbPn_Rb6HuKg4RYybnlb8dg1Ig1jF6QIbFMJy10LM
+@customerToken = TU_TOKEN_CUSTOMER
+
+### ==========================================
+### SUBCATEGORY — RUTAS PÚBLICAS
+### ==========================================
+
+### Get all subcategories SIN parámetros (sin token — público ✅)
+GET {{baseUrl}}/subcategory/ HTTP/1.1
+
+### ==========================================
+
+### Get subcategory by ID (válido — público ✅)
+GET {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+
+### ==========================================
+
+### Get subcategory by ID (no existe — 404)
+GET {{baseUrl}}/subcategory/999 HTTP/1.1
+
+### ==========================================
+
+### Get subcategory by ID (id inválido — 422)
+GET {{baseUrl}}/subcategory/abc HTTP/1.1
+
+
+### ==========================================
+### SUBCATEGORY — CREATE (admin + editor)
+### ==========================================
+
+### Create subcategory (admin — válido ✅ 201)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalones Hombre",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Create subcategory (editor — válido ✅ 201)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Pantalones Mujer",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Create subcategory (customer — 403 ❌)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Polos Niño",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Create subcategory (sin token — 401 ❌)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Polos Niño",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Create subcategory (category_id no existe — 404 ❌)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre",
+    "category_id": 999
+}
+
+### ==========================================
+
+### Create subcategory (sin category_id — 422 ❌)
+POST {{baseUrl}}/subcategory/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre"
+}
+
+
+### ==========================================
+### SUBCATEGORY — UPDATE (admin + editor)
+### ==========================================
+
+### Update subcategory (admin — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre Updated",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Update subcategory (editor — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre Updated By Editor",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Update subcategory (customer — 403 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre Updated",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Update subcategory (sin token — 401 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre Updated",
+    "category_id": {{categoryId}}
+}
+
+### ==========================================
+
+### Update subcategory (no existe — 404 ❌)
+PATCH {{baseUrl}}/subcategory/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+    "name": "Jeans Hombre Updated",
+    "category_id": {{categoryId}}
+}
+
+
+### ==========================================
+### SUBCATEGORY — ACTIVATE / DEACTIVATE (admin + editor)
+### ==========================================
+
+### Activate subcategory (admin — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Activate subcategory (editor — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/activate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Activate subcategory (customer — 403 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/activate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Activate subcategory (sin token — 401 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/activate HTTP/1.1
+
+### ==========================================
+
+### Activate subcategory (no existe — 404 ❌)
+PATCH {{baseUrl}}/subcategory/999/activate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate subcategory (admin — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Deactivate subcategory (editor — válido ✅)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Deactivate subcategory (customer — 403 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/deactivate HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Deactivate subcategory (sin token — 401 ❌)
+PATCH {{baseUrl}}/subcategory/{{subcategoryId}}/deactivate HTTP/1.1
+
+### ==========================================
+
+### Deactivate subcategory (no existe — 404 ❌)
+PATCH {{baseUrl}}/subcategory/999/deactivate HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+
+### ==========================================
+### SUBCATEGORY — DELETE (solo admin)
+### ==========================================
+
+### Delete subcategory (admin — válido ✅)
+DELETE {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+
+### Delete subcategory (editor — 403 ❌ solo admin puede eliminar)
+DELETE {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{editorToken}}
+
+### ==========================================
+
+### Delete subcategory (customer — 403 ❌)
+DELETE {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Delete subcategory (sin token — 401 ❌)
+DELETE {{baseUrl}}/subcategory/{{subcategoryId}} HTTP/1.1
+
+### ==========================================
+
+### Delete subcategory (no existe — 404 ❌)
+DELETE {{baseUrl}}/subcategory/999 HTTP/1.1
+Authorization: Bearer {{adminToken}}

@@ -1,0 +1,28 @@
+services:
+  #api:
+    #build: .
+    #restart: unless-stopped  # ← reinicia si muere
+  postgres:
+    image: postgres:16-alpine
+    container_name: sale-back-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER_LOCAL}
+      POSTGRES_PASSWORD: ${PG_PASSWORD_LOCAL}
+      POSTGRES_DB: ${PG_DB_LOCAL}
+    ports:
+      - "${PG_PORT_LOCAL}:5432"
+    volumes:
+      - sale_back_data:/var/lib/postgresql/data
+      - ./db/TABLES.sql:/docker-entrypoint-initdb.d/01_tables.sql
+      - ./db/FUNCTIONS.sql:/docker-entrypoint-initdb.d/02_functions.sql
+      - ./db/TRIGGERS.sql:/docker-entrypoint-initdb.d/03_triggers.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER_LOCAL} -d ${PG_DB_LOCAL}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sale_back_data:
+    driver: local
