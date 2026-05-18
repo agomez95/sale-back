@@ -146,6 +146,19 @@ const CST_USER = {
     TOGGLE_STATE:   'FN_TOGGLE_CST_USER_STATE'
 } as const;
 
+const ADDRESS = {
+    GET_BY_CUSTOMER: 'FN_GET_ADDRESSES_BY_CUSTOMER',
+    GET_BY_ID:       'FN_GET_ADDRESS_BY_ID',
+    ADD:             'FN_ADD_ADDRESS',
+    EDIT:            'FN_EDIT_ADDRESS',
+    DELETE:          'FN_DEL_ADDRESS',
+    SET_DEFAULT:     'FN_SET_DEFAULT_ADDRESS'
+} as const;
+
+const COUNTRY = {
+    GET_ALL: 'SELECT * FROM FN_GET_COUNTRIES();'
+} as const;
+
 export const QUERIES = {
     BRAND,
     CATEGORY,
@@ -159,5 +172,7 @@ export const QUERIES = {
     TOKEN,
     LOGIN_ATTEMPT,
     ADM_USER,
-    CST_USER
+    CST_USER,
+    ADDRESS,
+    COUNTRY
 } as const;

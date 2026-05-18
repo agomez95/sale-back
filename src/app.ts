@@ -21,6 +21,7 @@ import variantRoutes from './modules/variant/variant.route';
 import searchRoutes from './modules/search/search.route';
 import photoRoutes from './modules/photo/photo.route';
 import userRoutes from './modules/user/user.route';
+import addressRoutes from './modules/address/address.route';
 
 const app: Express = express();
 
@@ -44,6 +45,7 @@ app.use('/sales/api/variant/', variantRoutes);
 app.use('/sales/api/search/', searchRoutes);
 app.use('/sales/api/photo/', photoRoutes);
 app.use('/sales/api/user/', userRoutes);
+app.use('/sales/api/address/', addressRoutes);
 
 // Error handlers — SIEMPRE al final
 app.use(notFoundMiddleware);

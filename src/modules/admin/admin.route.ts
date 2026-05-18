@@ -54,4 +54,9 @@ router.delete('/tokens/:userId/:type',
     adminController.revokeUserTokens
 );
 
+// ─── Customer Addresses ─────────────────────────────
+router.get('/customers/:id/addresses',
+    adminController.getCustomerAddresses
+);
+
 export default router;

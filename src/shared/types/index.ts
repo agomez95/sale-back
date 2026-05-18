@@ -53,8 +53,8 @@ export interface BaseRow extends QueryResultRow {
  */
 
 // ─── Brand ─────────────────────────────────────────────
-// FN_GET_BRANDS / FN_GET_BRAND retornan:
-export interface BrandRow extends QueryResultRow {
+// FN_GET_BRAND retornan:
+export interface BrandDetailRow extends QueryResultRow {
     id: number;
     name: string;
     state: boolean;
@@ -72,8 +72,8 @@ export interface UpdateBrandDTO {
 
 // ─── Category ─────────────────────────────────────────────
 // Table: PRO_categorys
-// FN_GET_CATEGORIES / FN_GET_CATEGORY retornan:
-export interface CategoryRow extends QueryResultRow {
+// FN_GET_CATEGORY retornan:
+export interface CategoryDetailRow extends QueryResultRow {
     id: number;
     name: string;
     state: boolean;
@@ -388,6 +388,43 @@ export interface SpecConstantRow extends QueryResultRow {
     modified_at: Date;
 }
 
+// ─── Address ──────────────────────────────────────────
+export interface AddressRow extends QueryResultRow {
+    address_id: number;
+    number: string;
+    street: string;
+    address_line_1: string | null;
+    address_line_2: string | null;
+    city: string;
+    state_province: string;
+    postal_code: string;
+    country_id: number;
+    country: string;
+    country_short: string;
+    is_default: boolean;
+    created_at: Date;
+    modified_at: Date;
+}
+
+export interface CountryRow extends QueryResultRow {
+    id: number;
+    fullname: string;
+    shortname: string;
+}
+
+export interface CreateAddressDTO {
+    number: string;
+    street: string;
+    address_line_1?: string;
+    address_line_2?: string;
+    city: string;
+    state_province: string;
+    postal_code: string;
+    country_id: number;
+}
+
+export interface UpdateAddressDTO extends CreateAddressDTO {}
+
 /**
  * Pagination:
  * Definición de las interfaces relacionadas con la paginación de resultados en las consultas a la base de datos.
@@ -556,3 +593,7 @@ export interface ActiveTokenRow extends QueryResultRow {
     created_at: Date;
     total: number;
 }
+
+/**
+ * 
+ */

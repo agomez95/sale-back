@@ -1640,7 +1640,6 @@ $func$;
 
 /* GET SUBCATEGORIES WITH SPECIFICATIONS */
 
-
 CREATE OR REPLACE FUNCTION FN_GET_SUBCATEGORIES_WITH_SPECS()
 RETURNS TABLE (
     subcategory_id INT,
@@ -1757,7 +1756,304 @@ END;
 $func$
 LANGUAGE plpgsql;
 
+
+/************************* CUSTOMER & ADDRESSES *************************/
+
+
+-- GET addresses by customer
+CREATE OR REPLACE FUNCTION FN_GET_ADDRESSES_BY_CUSTOMER(
+    p_customer_id_in UUID
+)
+RETURNS TABLE(
+    address_id      INTEGER,
+    number          VARCHAR,
+    street          VARCHAR,
+    address_line_1  VARCHAR,
+    address_line_2  VARCHAR,
+    city            VARCHAR,
+    state_province  VARCHAR,
+    postal_code     VARCHAR,
+    country_id      INTEGER,
+    country         VARCHAR,
+    country_short   VARCHAR,
+    is_default      BOOLEAN,
+    created_at      TIMESTAMPTZ,
+    modified_at     TIMESTAMPTZ
+)
+LANGUAGE plpgsql AS
+$func$
+BEGIN
+    RETURN QUERY
+    SELECT
+        a.id            AS address_id,
+        a.number,
+        a.street,
+        a.address_line_1,
+        a.address_line_2,
+        a.city,
+        a.state_province,
+        a.postal_code,
+        c.id            AS country_id,
+        c.fullname      AS country,
+        c.shortname     AS country_short,
+        ca.is_default,
+        a.created_at,
+        a.modified_at
+    FROM CST_customer_address ca
+    INNER JOIN ADR_addresses a  ON a.id  = ca.ADR_address_id
+    INNER JOIN ADR_country c    ON c.id  = a.ADR_country_id
+    WHERE ca.CST_customer_id = p_customer_id_in
+    ORDER BY ca.is_default DESC, a.created_at DESC;
+END
+$func$;
+
+-- GET address by ID (verifica que pertenece al customer)
+CREATE OR REPLACE FUNCTION FN_GET_ADDRESS_BY_ID(
+    p_address_id_in   INTEGER,
+    p_customer_id_in  UUID
+)
+RETURNS TABLE(
+    address_id      INTEGER,
+    number          VARCHAR,
+    street          VARCHAR,
+    address_line_1  VARCHAR,
+    address_line_2  VARCHAR,
+    city            VARCHAR,
+    state_province  VARCHAR,
+    postal_code     VARCHAR,
+    country_id      INTEGER,
+    country         VARCHAR,
+    country_short   VARCHAR,
+    is_default      BOOLEAN,
+    created_at      TIMESTAMPTZ,
+    modified_at     TIMESTAMPTZ
+)
+LANGUAGE plpgsql AS
+$func$
+BEGIN
+    RETURN QUERY
+    SELECT
+        a.id            AS address_id,
+        a.number,
+        a.street,
+        a.address_line_1,
+        a.address_line_2,
+        a.city,
+        a.state_province,
+        a.postal_code,
+        c.id            AS country_id,
+        c.fullname      AS country,
+        c.shortname     AS country_short,
+        ca.is_default,
+        a.created_at,
+        a.modified_at
+    FROM CST_customer_address ca
+    INNER JOIN ADR_addresses a ON a.id  = ca.ADR_address_id
+    INNER JOIN ADR_country c   ON c.id  = a.ADR_country_id
+    WHERE ca.ADR_address_id  = p_address_id_in
+      AND ca.CST_customer_id = p_customer_id_in;
+END
+$func$;
+
+-- ADD address
+CREATE OR REPLACE FUNCTION FN_ADD_ADDRESS(
+    p_customer_id_in   UUID,
+    p_number_in        VARCHAR(250),
+    p_street_in        VARCHAR(250),
+    p_address_line_1   VARCHAR(250),
+    p_address_line_2   VARCHAR(250),
+    p_city_in          VARCHAR(250),
+    p_state_province_in VARCHAR(250),
+    p_postal_code_in   VARCHAR(250),
+    p_country_id_in    INTEGER
+)
+RETURNS INTEGER AS
+$func$
+DECLARE
+    v_address_id    INTEGER;
+    v_is_default    BOOLEAN;
+    v_address_count INTEGER;
+BEGIN
+    -- Si es la primera dirección → es default automáticamente
+    SELECT COUNT(*) INTO v_address_count
+    FROM CST_customer_address
+    WHERE CST_customer_id = p_customer_id_in;
+
+    v_is_default := (v_address_count = 0);
+
+    -- Insertar dirección
+    INSERT INTO ADR_addresses (
+        number, street, address_line_1, address_line_2,
+        city, state_province, postal_code, ADR_country_id
+    )
+    VALUES (
+        p_number_in, p_street_in, p_address_line_1, p_address_line_2,
+        p_city_in, p_state_province_in, p_postal_code_in, p_country_id_in
+    )
+    RETURNING id INTO v_address_id;
+
+    -- Relacionar con el customer
+    INSERT INTO CST_customer_address (CST_customer_id, ADR_address_id, is_default)
+    VALUES (p_customer_id_in, v_address_id, v_is_default);
+
+    RETURN v_address_id;
+END;
+$func$
+LANGUAGE plpgsql;
+
+-- EDIT address
+CREATE OR REPLACE FUNCTION FN_EDIT_ADDRESS(
+    p_address_id_in     INTEGER,
+    p_customer_id_in    UUID,
+    p_number_in         VARCHAR(250),
+    p_street_in         VARCHAR(250),
+    p_address_line_1    VARCHAR(250),
+    p_address_line_2    VARCHAR(250),
+    p_city_in           VARCHAR(250),
+    p_state_province_in VARCHAR(250),
+    p_postal_code_in    VARCHAR(250),
+    p_country_id_in     INTEGER
+) RETURNS BOOLEAN AS
+$func$
+DECLARE
+    v_exists BOOLEAN;
+BEGIN
+    -- Verificar que la dirección pertenece al customer
+    SELECT EXISTS (
+        SELECT 1 FROM CST_customer_address
+        WHERE ADR_address_id  = p_address_id_in
+          AND CST_customer_id = p_customer_id_in
+    ) INTO v_exists;
+
+    IF NOT v_exists THEN
+        RETURN FALSE;
+    END IF;
+
+    UPDATE ADR_addresses SET
+        number         = p_number_in,
+        street         = p_street_in,
+        address_line_1 = p_address_line_1,
+        address_line_2 = p_address_line_2,
+        city           = p_city_in,
+        state_province = p_state_province_in,
+        postal_code    = p_postal_code_in,
+        ADR_country_id = p_country_id_in,
+        modified_at    = NOW()
+    WHERE id = p_address_id_in;
+
+    RETURN TRUE;
+END;
+$func$
+LANGUAGE plpgsql;
+
+-- DELETE address
+CREATE OR REPLACE FUNCTION FN_DEL_ADDRESS(
+    p_address_id_in  INTEGER,
+    p_customer_id_in UUID
+) RETURNS BOOLEAN AS
+$func$
+DECLARE
+    v_exists     BOOLEAN;
+    v_is_default BOOLEAN;
+BEGIN
+    -- Verificar que pertenece al customer
+    SELECT EXISTS (
+        SELECT 1 FROM CST_customer_address
+        WHERE ADR_address_id  = p_address_id_in
+          AND CST_customer_id = p_customer_id_in
+    ) INTO v_exists;
+
+    IF NOT v_exists THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Verificar si era la default
+    SELECT is_default INTO v_is_default
+    FROM CST_customer_address
+    WHERE ADR_address_id  = p_address_id_in
+      AND CST_customer_id = p_customer_id_in;
+
+    -- Eliminar relación
+    DELETE FROM CST_customer_address
+    WHERE ADR_address_id  = p_address_id_in
+      AND CST_customer_id = p_customer_id_in;
+
+    -- Eliminar dirección
+    DELETE FROM ADR_addresses WHERE id = p_address_id_in;
+
+    -- Si era default → asignar la más reciente como nueva default
+    IF v_is_default THEN
+        UPDATE CST_customer_address SET is_default = TRUE
+        WHERE CST_customer_id = p_customer_id_in
+          AND ADR_address_id = (
+              SELECT ADR_address_id
+              FROM CST_customer_address ca
+              INNER JOIN ADR_addresses a ON a.id = ca.ADR_address_id
+              WHERE ca.CST_customer_id = p_customer_id_in
+              ORDER BY a.created_at DESC
+              LIMIT 1
+          );
+    END IF;
+
+    RETURN TRUE;
+END;
+$func$
+LANGUAGE plpgsql;
+
+-- SET DEFAULT address
+CREATE OR REPLACE FUNCTION FN_SET_DEFAULT_ADDRESS(
+    p_address_id_in  INTEGER,
+    p_customer_id_in UUID
+) RETURNS BOOLEAN AS
+$func$
+DECLARE
+    v_exists BOOLEAN;
+BEGIN
+    -- Verificar que pertenece al customer
+    SELECT EXISTS (
+        SELECT 1 FROM CST_customer_address
+        WHERE ADR_address_id  = p_address_id_in
+          AND CST_customer_id = p_customer_id_in
+    ) INTO v_exists;
+
+    IF NOT v_exists THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Quitar default de todas las direcciones del customer
+    UPDATE CST_customer_address SET is_default = FALSE
+    WHERE CST_customer_id = p_customer_id_in;
+
+    -- Marcar la nueva default
+    UPDATE CST_customer_address SET is_default = TRUE
+    WHERE ADR_address_id  = p_address_id_in
+      AND CST_customer_id = p_customer_id_in;
+
+    RETURN TRUE;
+END;
+$func$
+LANGUAGE plpgsql;
+
+-- GET countries (para el formulario de dirección)
+CREATE OR REPLACE FUNCTION FN_GET_COUNTRIES()
+RETURNS TABLE(
+    id        INTEGER,
+    fullname  VARCHAR,
+    shortname VARCHAR
+)
+LANGUAGE plpgsql AS
+$func$
+BEGIN
+    RETURN QUERY
+    SELECT c.id, c.fullname, c.shortname
+    FROM ADR_country c
+    ORDER BY c.fullname;
+END
+$func$;
+
+
 /************************* SECURITY *************************/
+
 
 /* REFRESH TOKENS */
 -- Insertar refresh token para admin

@@ -1,0 +1,105 @@
+### Variables
+@baseUrl = http://localhost:3000/sales/api
+@customerToken = TU_TOKEN_CUSTOMER
+@adminToken = TU_TOKEN_ADMIN
+@addressId = 1
+
+### ==========================================
+### ADDRESS
+### ==========================================
+
+### Get countries (público ✅)
+GET {{baseUrl}}/address/countries HTTP/1.1
+
+### ==========================================
+
+### Get my addresses (customer ✅)
+GET {{baseUrl}}/address/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Get address by ID (customer ✅)
+GET {{baseUrl}}/address/{{addressId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Create address (válido ✅)
+POST {{baseUrl}}/address/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "number": "123",
+    "street": "Av. Los Pinos",
+    "address_line_1": "Dpto 4B",
+    "address_line_2": null,
+    "city": "Lima",
+    "state_province": "Lima",
+    "postal_code": "15001",
+    "country_id": 1
+}
+
+### ==========================================
+
+### Create address (country_id no existe — 422 ❌)
+POST {{baseUrl}}/address/ HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "number": "123",
+    "street": "Av. Los Pinos",
+    "city": "Lima",
+    "state_province": "Lima",
+    "postal_code": "15001",
+    "country_id": 999
+}
+
+### ==========================================
+
+### Update address (válido ✅)
+PATCH {{baseUrl}}/address/{{addressId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{
+    "number": "456",
+    "street": "Av. Javier Prado",
+    "city": "Lima",
+    "state_province": "Lima",
+    "postal_code": "15046",
+    "country_id": 1
+}
+
+### ==========================================
+
+### Set default address (válido ✅)
+PATCH {{baseUrl}}/address/{{addressId}}/default HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Delete address (válido ✅)
+DELETE {{baseUrl}}/address/{{addressId}} HTTP/1.1
+Authorization: Bearer {{customerToken}}
+
+### ==========================================
+
+### Sin token → 401 ❌
+GET {{baseUrl}}/address/ HTTP/1.1
+
+### ==========================================
+
+### Con token admin → 403 ❌
+GET {{baseUrl}}/address/ HTTP/1.1
+Authorization: Bearer {{adminToken}}
+
+### ==========================================
+### ADMIN — Ver direcciones de un customer
+### ==========================================
+
+### GET customer addresses (admin ✅)
+GET {{baseUrl}}/admin/customers/UUID_DEL_CUSTOMER/addresses HTTP/1.1
+Authorization: Bearer {{adminToken}}

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as adminService from './admin.service';
+import * as addressService from '../address/address.service';
 import { getIpCacheStats, clearIpCache } from '../../shared/middlewares/index';
 import { logSuccess } from '../../shared/utils/index';
 import { 
@@ -145,4 +146,13 @@ export const revokeUserTokens = async (
 
     await adminService.revokeUserTokens(userId, type);
     res.json({ success: true, message: 'User tokens revoked' });
+};
+
+// GET /admin/customers/:id/addresses
+export const getCustomerAddresses = async (
+    req: Request<{ id: string }>,
+    res: Response
+): Promise<void> => {
+    const addresses = await addressService.getMyAddresses(req.params.id);
+    res.json({ success: true, data: addresses });
 };
