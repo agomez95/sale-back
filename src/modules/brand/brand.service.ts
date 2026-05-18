@@ -2,7 +2,7 @@ import db from '../../shared/database/connection';
 import { QUERIES } from '../../shared/database/queries';
 import { NotFoundError } from '../../shared/errors/index';
 import { 
-    BrandRow, 
+    BrandDetailRow, 
     BrandPagedRow,
     CreateBrandDTO, 
     UpdateBrandDTO
@@ -55,8 +55,8 @@ export const getAllBrands = (query: PaginationQuery) =>
  * @param id - El ID de la marca a recuperar.
  * @returns - Una promesa que resuelve con la información de la marca.
  */
-export const getBrandById = async (id: number): Promise<BrandRow> => {
-    const result = await db.callFunction<BrandRow>(
+export const getBrandById = async (id: number): Promise<BrandDetailRow> => {
+    const result = await db.callFunction<BrandDetailRow>(
         QUERIES.BRAND.GET_ONE,
         { id },
         true

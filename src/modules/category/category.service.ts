@@ -2,7 +2,7 @@ import db from '../../shared/database/connection';
 import { QUERIES } from '../../shared/database/queries';
 import { NotFoundError } from '../../shared/errors/index'
 import { 
-    CategoryRow,
+    CategoryDetailRow,
     CategoryPagedRow,
     CreateCategoryDTO, 
     UpdateCategoryDTO
@@ -56,8 +56,8 @@ export const getAllCategories = (query: PaginationQuery) =>
  * @param id - El ID de la categoría a recuperar.
  * @returns - Una promesa que resuelve con la información de la categoría.
  */
-export const getCategoryById = async (id: number): Promise<CategoryRow> => {
-    const result = await db.callFunction<CategoryRow>(
+export const getCategoryById = async (id: number): Promise<CategoryDetailRow> => {
+    const result = await db.callFunction<CategoryDetailRow>(
         QUERIES.CATEGORY.GET_ONE,
         { id },
         true
