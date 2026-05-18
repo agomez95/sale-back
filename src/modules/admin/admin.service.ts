@@ -11,12 +11,10 @@ import {
     CreateAdminDTO,
 } from '../../shared/types/index';
 import {
-    parsePagination,
-    getOffset,
-    buildPaginatedResponse,
-    PaginatedResponse,
+    runPagedQuery,
     revokeAllUserTokens,
-    logSuccess
+    logSuccess,
+    PaginationQuery
 } from '../../shared/utils/index';
 
 /**
@@ -26,134 +24,103 @@ import {
  * y gestión de la caché de IPs y los intentos de inicio de sesión.
  */
 
-// ─── Helper interno ─────────────────────────────────────────
 /**
- * La ejecución de una consulta paginada genérica desde la base de datos
- * centralizando así, la lógica de paginación en las distintas operaciones de este servicio
- * usando el parsing, offset ademas de la extración del total y la construcción de la respuesta.
+ * Helper interno:
  * 
- * @param queryKey - La clave de la consulta a ejecutar (definida en QUERIES).
- * @param query - Parámetros de consulta para paginación opcionales.
- * @param query.page - Número de página (opcional, por defecto 1).
- * @param query.limit - Cantidad de registros por página (opcional, por defecto 10).
- * @param extraParams - Parámetros adicionales a pasar a la consulta (opcional).
- * 
- * @returns - Una promesa que resuelve en una respuesta paginada, con los datos de los
- * solicitadso (sin el campo total) y la metadata de paginación.
- */
-export const runPagedQuery = async <T extends { total: number }>(
-    queryKey: string,
-    query: { page?: string; limit?: string },
-    extraParams?: Record<string, unknown>
-): Promise<PaginatedResponse<Omit<T, 'total'>>> => {
-    const { page, limit } = parsePagination(query);
-    const offset = getOffset(page, limit);
-
-    const rows = await db.callFunction<T>(
-        queryKey,
-        { limit, offset, ...extraParams },
-        true
-    );
-    
-    const total = rows.length > 0 ? Number((rows[0] as any).total) : 0;
-    const data = rows.map(({ total, ...row }) => row as Omit<T, 'total'>);
-
-    return buildPaginatedResponse(data, total, page, limit);
-}
-
-// Administradores - Get: Obtiene una lista paginada de usuarios administradores.
-export const getAdminUsers = (query: { page?: string; limit?: string }) =>
-    runPagedQuery<AdminUserPagedRow>(QUERIES.ADM_USER.GET_ALL_PAGED, query);
-
-/**
- * Activa o desactiva un usuario administrador según el estado proporcionado, 
+ * Activa o desactiva un usuario administrador/cliente según el estado proporcionado, 
  * asegurando que un admin no pueda cambiar su propio estado además de revocar 
  * sus tokens activos si se desactiva.
  * 
+ * @param queryKey - La clave de la consulta a ejecutar para cambiar el estado del usuario (definida en QUERIES).
  * @param id - El ID del usuario administrador a activar o desactivar.
  * @param state - El nuevo estado del usuario (true para activar, false para desactivar).
- * @param requesterId - El ID del usuario que realiza la solicitud, para evitar que un admin cambie su propio estado.
+ * @param userType - El tipo de usuario ('admin' o 'customer') para personalizar los mensajes de error y logs.
+ * @param requesterId - El ID del usuario que realiza la solicitud, para evitar que un admin cambie su propio estado OPCIONAL.
  * 
  * @throws NotFoundError si el usuario administrador no existe.
  * @throws Error si un admin intenta cambiar su propio estado.
  */
-export const toggleAdminState = async (
+const toggleUserState = async (
+    queryKey: string,
     id: string,
     state: boolean,
-    requesterId: string
+    userType: 'admin' | 'customer',
+    requesterId?: string
 ): Promise<void> => {
-    // Evita que un admin cambie su propio estado
-    if(id === requesterId) {
-        throw new Error('Cannot change your own state');
-    }
+    if (requesterId && id === requesterId) throw new Error('Cannot change your own state'); 
 
-    const users = await db.callFunction<AdminUserRow>(
-        QUERIES.ADM_USER.GET_BY_ID,
+    const users = await db.callFunction<{ id: string }>(
+        queryKey,
         { id },
         true
     );
 
     if (!users.length) {
-        throw new NotFoundError('Admin user not found', { id });
+        throw new NotFoundError(`${userType} user not found`, { id });
     }
 
-    await db.callFunction(QUERIES.ADM_USER.TOGGLE_STATE, { id, state });
+    await db.callFunction(queryKey, { id, state });
 
-    // Si el admin se desactiva, revoca todos sus tokens activos
-    if (!state) {
-        await revokeAllUserTokens(id, 'admin');
-    }
-    
-    logSuccess(`Admin user ${state ? 'activated' : 'deactivated'}`, { id });
+    if (!state) await revokeAllUserTokens(id, userType);
+
+    logSuccess(`User ${state ? 'activated' : 'deactivated'}`, { id });
 };
 
-
-// Clientes - Get: Obtiene una lista paginada de clientes.
-export const getCustomers = (query: { page?: string; limit?: string }) =>
+/**
+ * Administradores - Get: Obtiene una lista paginada de usuarios administradores.
+ * 
+ * @param query - Parámetros de paginación y filtrado para la consulta de usuarios administradores.
+ * @returns Una promesa que resuelve con la lista paginada de usuarios administradores.
+ */
+export const getAdminUsers = (query: PaginationQuery) =>
+    runPagedQuery<AdminUserPagedRow>(QUERIES.ADM_USER.GET_ALL_PAGED, query);
+/**
+ * Clientes - Get: Obtiene una lista paginada de clientes.
+ * 
+ * @param query - Parámetros de paginación y filtrado para la consulta de clientes.
+ * @returns Una promesa que resuelve con la lista paginada de clientes.
+ */
+export const getCustomers = (query: PaginationQuery) =>
     runPagedQuery<CustomerPagedRow>(QUERIES.CST_USER.GET_ALL_PAGED, query);
 
 /**
- * Activa o desactiva un usuario cliente según el estado proporcionado, 
- * asegurando que un cliente no pueda cambiar su propio estado además de revocar 
- * sus tokens activos si se desactiva.
+ * Login Attempts: Obtiene una lista paginada de intentos de inicio de sesión.
  * 
- * @param id - El ID del usuario cliente a activar o desactivar.
- * @param state - El nuevo estado del usuario (true para activar, false para desactivar).
- * 
- * @throws NotFoundError si el usuario cliente no existe.
- * @throws Error si un cliente intenta cambiar su propio estado.
+ * @param query - Parámetros de paginación y filtrado para la consulta de intentos de inicio de sesión.
+ * @returns Una promesa que resuelve con la lista paginada de intentos de inicio de sesión.
  */
-export const toggleCustomerState = async (
-    id: string, 
-    state: boolean
-): Promise<void> => {
-    const users = await db.callFunction<AdminUserRow>(
-        QUERIES.CST_USER.GET_BY_ID,
-        { id },
-        true
-    );
-
-    if (!users.length) {
-        throw new NotFoundError('Customer user not found', { id });
-    }
-
-    await db.callFunction(QUERIES.CST_USER.TOGGLE_STATE, { id, state });
-
-    // Si el cliente se desactiva, revoca todos sus tokens activos
-    if (!state) {
-        await revokeAllUserTokens(id, 'customer');
-    }
-    
-    logSuccess(`Customer ${state ? 'activated' : 'deactivated'}`, { id });
-}
-
-// Login Attempts: Obtiene una lista paginada de intentos de inicio de sesión.
-export const getLoginAttempts = (query: { page?: string; limit?: string }) =>
+export const getLoginAttempts = (query: PaginationQuery) =>
     runPagedQuery<LoginAttemptRow>(QUERIES.LOGIN_ATTEMPT.GET_ALL_PAGED, query);
 
-// Active Tokens: Obtiene una lista paginada de tokens activos.
-export const getActiveTokens = (query: { page?: string; limit?: string }) =>
+/**
+ * Active Tokens: Obtiene una lista paginada de tokens activos.
+ * 
+ * @param query - Parámetros de paginación y filtrado para la consulta de tokens activos.
+ * @returns Una promesa que resuelve con la lista paginada de tokens activos.
+ */
+export const getActiveTokens = (query: PaginationQuery) =>
     runPagedQuery<ActiveTokenRow>(QUERIES.TOKEN.GET_ACTIVE_PAGED, query);
+
+/**
+ * Administradores - Toggle State: Activa o desactiva un usuario administrador según el estado proporcionado.
+ * 
+ * @param id - El ID del usuario administrador a activar o desactivar.
+ * @param state - El nuevo estado del usuario administrador (true para activar, false para desactivar).
+ * @param requesterId - El ID del usuario que realiza la solicitud, para evitar que un admin cambie su propio estado.
+ * @returns Una promesa que se resuelve cuando el estado del usuario ha sido cambiado.
+ */
+export const toggleAdminState = async (id: string, state: boolean, requesterId: string): Promise<void> =>
+    toggleUserState(QUERIES.ADM_USER.TOGGLE_STATE, id, state, 'admin', requesterId);
+
+/**
+ * Clientes - Toggle State: Activa o desactiva un cliente según el estado proporcionado.
+ * 
+ * @param id - El ID del cliente a activar o desactivar.
+ * @param state - El nuevo estado del cliente (true para activar, false para desactivar).
+ * @returns Una promesa que se resuelve cuando el estado del cliente ha sido cambiado.
+ */
+export const toggleCustomerState = async (id: string, state: boolean): Promise<void> =>
+    toggleUserState(QUERIES.CST_USER.TOGGLE_STATE, id, state, 'customer');
 
 /**
  * Revoca todos los tokens activos de un usuario específico, ya sea admin o cliente,
@@ -179,7 +146,7 @@ export const revokeUserTokens = async (
  * no esté ya registrado, hasheando la contraseña antes de almacenarla y registrando el evento
  * en los logs de éxito.
  * 
- * @param data - DTO con los datos necesarios para crear un nuevo usuario administrador.
+ * @param data - DTO con la información necesaria para crear un nuevo usuario administrador.
  * @returns - Una promesa que resuelve con el ID del nuevo usuario administrador creado.
  * 
  * @throws ConflictError si el email ya está registrado por otro usuario.

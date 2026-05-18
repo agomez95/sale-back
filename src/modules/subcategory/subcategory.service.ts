@@ -9,32 +9,52 @@ import {
     UpdateSubcategoryDTO
 } from '../../shared/types/index';
 import {
-    parsePagination,
-    getOffset,
-    buildPaginatedResponse,
-    PaginatedResponse
+    PaginationQuery,
+    runPagedQuery
 } from '../../shared/utils/index';
 
-// ─── Services ─────────────────────────────────────────
+/**
+ * Subcategory Service:
+ * 
+ * El servicio "subcategory" contiene la lógica de negocio para las operaciones relacionadas con las subcategorías,
+ * incluyendo la creación, activación/desactivación y recuperación de información sobre las subcategorías existentes en el sistema.
+ */
 
-export const getAllSubcategories = async (
-    query: { page?: string; limit?: string }
-): Promise<PaginatedResponse<Omit<SubcategoryPagedRow, 'total'>>> => {
-    const { page, limit } = parsePagination(query);
-    const offset = getOffset(page, limit);
+/**
+ * Helper interno:
+ * 
+ * @description - Ejecuta una acción específica (activar, desactivar o eliminar) sobre una subcategoría identificada por su ID,
+ * asegurando que la subcategoría exista antes de intentar realizar la acción.
+ * 
+ * @param queryKey - La clave de la consulta a ejecutar para realizar la acción sobre la subcategoría (definida en QUERIES).
+ * @param id - El ID de la subcategoría sobre la cual se realizará la acción.
+ */
+const runSubcategoryAction = async (
+    queryKey: string,
+    id: number
+): Promise<void> => {
+    await getSubcategoryById(id);
 
-    const rows = await db.callFunction<SubcategoryPagedRow>(
-        QUERIES.SUBCATEGORY.GET_ALL_PAGED, 
-        { limit, offset },
-        true
-    );
-    
-    const total = rows.length > 0 ? Number(rows[0].total) : 0;
-    const data = rows.map(({ total, ...row }) => row);
+    await db.callFunction(queryKey, { id });
+}
 
-    return buildPaginatedResponse(data, total, page, limit);
-};
+/**
+ * @description - Obtiene una lista paginada de subcategorías disponibles en el sistema, con soporte para parámetros de paginación 
+ * y filtrado.
+ * 
+ * @param query - Parámetros de paginación y filtrado para la consulta de subcategorías.
+ * @returns - Una promesa que resuelve con la lista paginada de subcategorías.
+ */
+export const getAllSubcategories = (query: PaginationQuery) =>
+    runPagedQuery<SubcategoryPagedRow>(QUERIES.SUBCATEGORY.GET_ALL_PAGED, query);
 
+/**
+ * @description - Obtiene la información de una subcategoría específica por su ID, lanzando un error si la subcategoría no existe.
+ * 
+ * @param id  - El ID de la subcategoría a recuperar.
+ * @returns - Una promesa que resuelve con la información de la subcategoría.
+ * @throws NotFoundError si la subcategoría no existe.
+ */
 export const getSubcategoryById = async (id: number): Promise<SubcategoryDetailRow> => {
     const result = await db.callFunction<SubcategoryDetailRow>(
         QUERIES.SUBCATEGORY.GET_ONE,
@@ -49,8 +69,14 @@ export const getSubcategoryById = async (id: number): Promise<SubcategoryDetailR
     return result[0];
 };
 
+/**
+ * @description - Crea una nueva subcategoría en el sistema.
+ * Antes de crear la subcategoría, se verifica que la categoría asociada exista en el sistema.
+ * 
+ * @param data - DTO con la información necesaria para crear una nueva subcategoría.
+ * @returns - Una promesa que resuelve con el ID de la nueva subcategoría creada.
+ */
 export const createSubcategory = async (data: CreateSubcategoryDTO): Promise<number> => {
-    // Verifica que la categoría existe antes de crear
     await getCategoryById(data.category_id);
 
     const result = await db.callFunction<{ fn_add_subcategory: number }>(
@@ -61,13 +87,19 @@ export const createSubcategory = async (data: CreateSubcategoryDTO): Promise<num
     return result[0].fn_add_subcategory;
 };
 
+/**
+ * @description - Actualiza la información de una subcategoría específica por su ID.
+ * Antes de actualizar la subcategoría, se verifica que la subcategoría a actualizar exista y que la categoría asociada exista en el sistema.
+ * 
+ * @param id - El ID de la subcategoría a actualizar.
+ * @param data - DTO con la información actualizada de la subcategoría.
+ * @returns - Una promesa que resuelve cuando la actualización se completa.
+ */
 export const updateSubcategory = async (
     id: number,
     data: UpdateSubcategoryDTO
 ): Promise<void> => {
     await getSubcategoryById(id);
-
-    // Verifica que la nueva categoría existe
     await getCategoryById(data.category_id);
 
     await db.callFunction(
@@ -76,20 +108,16 @@ export const updateSubcategory = async (
     );
 };
 
-export const activateSubcategory = async (id: number): Promise<void> => {
-    await getSubcategoryById(id);
+/**
+ * @description - Realiza una acción (activar, desactivar o eliminar) sobre una subcategoría específica por su ID.
+ * Antes de realizar la acción, se verifica que la subcategoría exista en el sistema.
+ * 
+ * @param id - El ID de la subcategoría sobre la cual se realizará la acción.
+ * @returns - Una promesa que resuelve cuando la acción se completa.
+ */
 
-    await db.callFunction(QUERIES.SUBCATEGORY.ACTIVATE, { id });
-};
+export const activateSubcategory = (id: number): Promise<void> => runSubcategoryAction(QUERIES.SUBCATEGORY.ACTIVATE, id);
 
-export const deactivateSubcategory = async (id: number): Promise<void> => {
-    await getSubcategoryById(id);
+export const deactivateSubcategory = (id: number): Promise<void> => runSubcategoryAction(QUERIES.SUBCATEGORY.DEACTIVATE, id);
 
-    await db.callFunction(QUERIES.SUBCATEGORY.DEACTIVATE, { id });
-};
-
-export const deleteSubcategory = async (id: number): Promise<void> => {
-    await getSubcategoryById(id);
-
-    await db.callFunction(QUERIES.SUBCATEGORY.DELETE, { id });
-};
+export const deleteSubcategory = (id: number): Promise<void> => runSubcategoryAction(QUERIES.SUBCATEGORY.DELETE, id);

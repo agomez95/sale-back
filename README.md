@@ -17,7 +17,7 @@ REST API para sistema de ventas construida con **Express 5** + **TypeScript** + 
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/sale-back.git
+git clone https://github.com/agomez95/sale-back.git
 cd sale-back
 ```
 

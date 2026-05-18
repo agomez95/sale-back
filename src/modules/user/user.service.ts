@@ -13,8 +13,38 @@ import {
     SigninDTO
 } from '../../shared/types/index';
 
-// ─── Helper: info del cliente ─────────────────────────
+/***
+ * User Service:
+ * 
+ * El servicio "user" contiene la lógica de negocio para las operaciones relacionadas con los usuarios del sistema, 
+ * incluyendo el registro de nuevos clientes, el inicio de sesión para administradores y clientes, la actualización de tokens de acceso 
+ * utilizando refresh tokens, el cierre de sesión y la recuperación de la información del usuario autenticado.
+ * 
+ * Este servicio se encarga de ejecutar las consultas necesarias para obtener la información requerida y construir las respuestas 
+ * adecuadas para cada caso de uso, así como manejar los errores correspondientes en caso de que las operaciones no puedan ser 
+ * completadas exitosamente.
+ * 
+ * Las funciones dentro de este servicio interactúan con la base de datos a través del módulo de conexión y utilizan utilidades 
+ * para el manejo de tokens y el registro de eventos importantes como inicios de sesión exitosos o fallidos.
+ * 
+ * Además, se asegura de que las contraseñas sean manejadas de manera segura utilizando hashing, y que los tokens sean generados y 
+ * revocados adecuadamente para mantener la seguridad del sistema.
+ * 
+ * En resumen, el servicio "user" es fundamental para la gestión de la autenticación y autorización en el sistema,
+ */
 
+/**
+ * 
+ * @description - Esta función extrae la dirección IP y el agente de usuario de la solicitud HTTP para su uso en operaciones 
+ * como el inicio de sesión, donde esta información puede ser útil para auditoría y seguridad.
+ * La función maneja casos donde la dirección IP puede estar presente en los headers (por ejemplo, a través de un proxy) 
+ * o en el socket de la conexión.
+ * 
+ * @param req - El objeto de solicitud HTTP, que contiene información sobre los headers y el socket de la conexión.
+ * @param req.headers - Headers de la solicitud HTTP, que pueden incluir información como el agente de usuario (user-agent) y la dirección IP del cliente.
+ * @param req.socket - El socket de la conexión, que puede proporcionar información adicional sobre la conexión del cliente, como la dirección IP remota.
+ * @returns - Un objeto que contiene la dirección IP y el agente de usuario del cliente.
+ */
 export const getClientInfo = (req: {
     headers: { [key: string]: string | string[] | undefined };
     socket: { remoteAddress?: string };
@@ -28,8 +58,16 @@ export const getClientInfo = (req: {
     return { ip, userAgent };
 };
 
-// ─── Signup Customer ──────────────────────────────────
-
+/**
+ * @description - Esta función maneja el proceso de registro de un nuevo cliente en el sistema.
+ * El proceso incluye la verificación de que el email proporcionado no esté ya registrado, el hash de la contraseña para seguridad,
+ * y la inserción de un nuevo registro en la base de datos para el cliente. Si el email ya existe, se lanza un error de conflicto.
+ * 
+ * @param data - DTO que contiene la información necesaria para registrar un nuevo cliente, incluyendo nombre, apellido, email y contraseña.
+ * @returns - Un objeto que contiene el ID del nuevo cliente registrado en el sistema.
+ * 
+ * @throws - ConflictError si el email proporcionado ya está registrado en el sistema.
+ */
 export const signupCustomer = async (
     data: SignupCustomerDTO
 ): Promise<{ id: string }> => {
@@ -62,8 +100,20 @@ export const signupCustomer = async (
     return { id: result[0].fn_add_cst_user };
 };
 
-// ─── Signin ───────────────────────────────────────────
-
+/**
+ * @description - Esta función maneja el proceso de inicio de sesión para usuarios administradores y clientes. 
+ * El proceso incluye la verificación de las credenciales proporcionadas (email y contraseña), la generación 
+ * de tokens de autenticación (access token y refresh token) si las credenciales son válidas, y el registro de los 
+ * intentos de inicio de sesión para auditoría. Si las credenciales son inválidas o la cuenta está deshabilitada, 
+ * se lanza un error de no autorizado.
+ * 
+ * @param data - DTO que contiene la información necesaria para iniciar sesión, incluyendo email, contraseña y tipo de usuario (admin o customer).
+ * @param ip - La dirección IP del cliente que intenta iniciar sesión, utilizada para auditoría y seguridad.
+ * @param userAgent - El agente de usuario del cliente que intenta iniciar sesión, utilizado para auditoría y seguridad.
+ * @returns - Un objeto que contiene los tokens de autenticación generados y la información del usuario que ha iniciado sesión (sin la contraseña).
+ * 
+ * @throws - UnauthorizedError si las credenciales son inválidas o la cuenta está deshabilitada.
+ */
 export const signin = async (
     data: SigninDTO,
     ip: string,
@@ -178,8 +228,19 @@ export const signin = async (
     }
 };
 
-// ─── Refresh Token ────────────────────────────────────
-
+/**
+ * @description - Esta función maneja el proceso de actualización del token de acceso utilizando un token de actualización (refresh token). 
+ * El proceso incluye la verificación de la validez del token de actualización proporcionado, la generación de un nuevo token 
+ * de acceso si el token de actualización es válido, y la revocación del token de actualización antiguo para evitar su reutilización. 
+ * Si el token de actualización es inválido o ha expirado, se lanza un error de no autorizado.
+ * 
+ * @param rawToken - El token de actualización proporcionado por el cliente, que se utilizará para generar un nuevo token de acceso.
+ * @param ip - La dirección IP del cliente que solicita la actualización del token, utilizada para auditoría y seguridad.
+ * @param userAgent - El agente de usuario del cliente que solicita la actualización del token, utilizado para auditoría y seguridad.
+ * @returns - Un objeto que contiene el nuevo token de acceso generado.
+ * 
+ * @throws - UnauthorizedError si el token de actualización es inválido o ha expirado.
+ */
 export const refreshToken = async (
     rawToken: string,
     ip: string,
@@ -196,8 +257,17 @@ export const refreshToken = async (
     return { accessToken: result.tokens.accessToken };
 };
 
-// ─── Logout ───────────────────────────────────────────
-
+/**
+ * @description - Esta función maneja el proceso de cierre de sesión para un usuario, lo que implica la revocación de todos 
+ * los tokens de autenticación asociados al usuario para garantizar que no puedan ser utilizados después del cierre de sesión. 
+ * Esto es especialmente importante para mantener la seguridad, ya que asegura que cualquier token comprometido o en posesión de 
+ * terceros deje de ser válido inmediatamente después del cierre de sesión. La función toma el ID del usuario y su tipo (admin o customer) 
+ * para identificar correctamente los tokens a revocar.
+ * 
+ * @param userId - El ID del usuario que está cerrando sesión, utilizado para identificar los tokens de autenticación asociados a ese usuario.
+ * @param userType - El tipo de usuario (admin o customer) que está cerrando sesión, utilizado para identificar correctamente los tokens a revocar.
+ * @returns - Una promesa que se resuelve cuando todos los tokens de autenticación del usuario han sido revocados.
+ */
 export const logout = async (
     userId: string,
     userType: 'admin' | 'customer'
@@ -206,8 +276,18 @@ export const logout = async (
     logSuccess('User logged out', { userId });
 };
 
-// ─── Me (perfil) ──────────────────────────────────────
-
+/**
+ * @description - Esta función maneja la recuperación de la información del usuario actualmente autenticado, utilizando su ID y 
+ * tipo de usuario para consultar la base de datos.
+ * La función devuelve la información del usuario sin incluir la contraseña, y lanza un error de no autorizado si el usuario no se 
+ * encuentra o si la cuenta está deshabilitada.
+ * 
+ * @param userId - El ID del usuario que está recuperando su información, utilizado para consultar la base de datos.
+ * @param userType - El tipo de usuario (admin o customer) que está recuperando su información, utilizado para identificar correctamente la consulta.
+ * @returns - Un objeto que contiene la información del usuario sin la contraseña.
+ * 
+ * @throws - UnauthorizedError si el usuario no se encuentra o si la cuenta está deshabilitada.
+ */
 export const getMe = async (
     userId: string,
     userType: 'admin' | 'customer'

@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import * as brandService from './brand.service';
 import { CreateBrandDTO, UpdateBrandDTO } from '../../shared/types/index';
 
+/**
+ * Brand Controller:
+ * El controller "brand" maneja las operaciones relacionadas con las marcas de productos,
+ * incluyendo la creación, actualización, activación/desactivación y eliminación de marcas.
+ */
+
 // GET /sales/api/brand/
 export const getAll = async (
     req: Request,

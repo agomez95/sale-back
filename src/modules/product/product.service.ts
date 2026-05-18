@@ -9,32 +9,53 @@ import {
     CreateProductDTO 
 } from '../../shared/types/index';
 import {
-    parsePagination,
-    getOffset,
-    buildPaginatedResponse,
-    PaginatedResponse
+    PaginationQuery,
+    runPagedQuery
 } from '../../shared/utils/index';
 
-// ─── Services ─────────────────────────────────────────
+/**
+ * Product Service:
+ * 
+ * El servicio "product" contiene la lógica de negocio para las operaciones relacionadas con los productos,
+ * incluyendo la creación, activación/desactivación y recuperación de información sobre los productos existentes en el sistema.
+ */
 
-export const getAllProducts = async (
-    query: { page?: string; limit?: string }
-): Promise<PaginatedResponse<Omit<ProductPagedRow, 'total'>>> => {
-    const { page, limit } = parsePagination(query);
-    const offset = getOffset(page, limit);
+/**
+ * Helper interno:
+ * 
+ * @description - Ejecuta una acción específica (activar, desactivar o eliminar) sobre un producto identificado por su ID,
+ * asegurando que el producto exista antes de intentar realizar la acción.
+ * 
+ * @param queryKey - La clave de la consulta a ejecutar para realizar la acción sobre el producto (definida en QUERIES).
+ * @param id - El ID del producto sobre el cual se realizará la acción.
+ * @returns Una promesa que se resuelve cuando la acción se completa.
+ * 
+ * @throws NotFoundError si el producto no existe.
+ */
+const runProductAction = async (
+    queryKey: string,
+    id: number
+): Promise<void> => {
+    await getProductById(id); 
 
-    const rows = await db.callFunction<ProductPagedRow>(
-        QUERIES.PRODUCT.GET_ALL_PAGED, 
-        { limit, offset },
-        true
-    );
-
-    const total = rows.length > 0 ? Number(rows[0].total) : 0;
-    const data = rows.map(({ total, ...row }) => row);
-
-    return buildPaginatedResponse(data, total, page, limit);
+    await db.callFunction(queryKey, { id });
 }
 
+/**
+ * @description - Obtiene una lista paginada de productos disponibles en el sistema, con soporte para parámetros de paginación y filtrado.
+ * 
+ * @param query - Parámetros de paginación y filtrado para la consulta de productos.
+ * @returns - Una promesa que resuelve con la lista paginada de productos.
+ */
+export const getAllProducts = (query: PaginationQuery) =>
+    runPagedQuery<ProductPagedRow>(QUERIES.PRODUCT.GET_ALL_PAGED, query);
+
+/**
+ * @description -  Obtiene la información de un producto específico por su ID, lanzando un error si el producto no existe.
+ * 
+ * @param id - El ID del producto a recuperar.
+ * @returns - Una promesa que resuelve con la información del producto.
+ */
 export const getProductById = async (id: number): Promise<ProductDetailRow> => {
     const result = await db.callFunction<ProductDetailRow>(
         QUERIES.PRODUCT.GET_ONE,
@@ -49,10 +70,16 @@ export const getProductById = async (id: number): Promise<ProductDetailRow> => {
     return result[0];
 };
 
+/**
+ * @description -  Crea un nuevo producto en el sistema con la información proporcionada, devolviendo el ID del producto creado.
+ * Antes de crear el producto, se verifica que la subcategoría y la marca asociadas existan en el sistema.
+ *
+ * @param data - DTO con la información necesaria para crear un nuevo producto.
+ * @returns - Una promesa que resuelve con el ID del nuevo producto creado.
+ */
 export const createProduct = async (data: CreateProductDTO): Promise<number> => {
-    // Verifica que subcategoría y marca existen
-    await getSubcategoryById(data.subcategory_id);
-    await getBrandById(data.brand_id);
+    await getSubcategoryById(data.subcategory_id); 
+    await getBrandById(data.brand_id); 
 
     const result = await db.callFunction<{ fn_add_product: number }>(
         QUERIES.PRODUCT.ADD,
@@ -68,12 +95,13 @@ export const createProduct = async (data: CreateProductDTO): Promise<number> => 
     return result[0].fn_add_product;
 };
 
-export const activateProduct = async (id: number): Promise<void> => {
-    await getProductById(id);
-    await db.callFunction(QUERIES.PRODUCT.ACTIVATE, { id });
-};
+/**
+ * @description - Activa o desactiva un producto en el sistema.
+ * 
+ * @param id - ID del producto a activar o desactivar.
+ * @returns - Una promesa que resuelve cuando la acción se completa.
+ */
 
-export const deactivateProduct = async (id: number): Promise<void> => {
-    await getProductById(id);
-    await db.callFunction(QUERIES.PRODUCT.DEACTIVATE, { id });
-};
+export const activateProduct = (id: number): Promise<void> => runProductAction(QUERIES.PRODUCT.ACTIVATE, id);
+
+export const deactivateProduct = (id: number): Promise<void> => runProductAction(QUERIES.PRODUCT.DEACTIVATE, id);
